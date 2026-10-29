@@ -1,0 +1,8 @@
+build123d>=0.13.0
+cadquery-ocp-novtk>=8.0.1.1.0
+fastmcp>=4.1.4
+flask>=3.1.0
+pymupdf>=2.0.0
+pydantic>=2.0.0
+numpy>=2.0.0
+pillow>=10.0.0
