@@ -28,30 +28,6 @@ SAMPLE_PARTS = [
         "reference_stp": os.path.join(BASE_DIR, "Drawing2CAD", "Fuss", "Fuss.stp"),
         "preview_img": "Fuss_dwg.png",
         "description": "Square flange base (115x115x19) with 4x D19 holes, R9.5 fillet, central boss, and stepped bore."
-    },
-    {
-        "id": "Sensoraufnahme",
-        "name": "Sensoraufnahme (Missing Dimension Challenge)",
-        "drawing_pdf": os.path.join(BASE_DIR, "Drawing2CAD", "Sensoraufnahme (optional PMI)", "Sensoraufnahme.pdf"),
-        "reference_stp": os.path.join(BASE_DIR, "Drawing2CAD", "Sensoraufnahme (optional PMI)", "Sensoraufnahme.stp"),
-        "preview_img": "Sensoraufnahme.png",
-        "description": "Flat bracket plate with M8 hole, slot, and semicircular end. Width dimension is omitted."
-    },
-    {
-        "id": "3-Loch-Hebel",
-        "name": "3-Loch-Hebel (Triple-Hole Lever)",
-        "drawing_pdf": os.path.join(BASE_DIR, "Drawing2CAD", "3-Loch-Hebel", "3-Loch-Hebel.pdf"),
-        "reference_stp": os.path.join(BASE_DIR, "Drawing2CAD", "3-Loch-Hebel", "3-Loch-Hebel.stp"),
-        "preview_img": "3-Loch-Hebel.png",
-        "description": "V-shaped lever plate with 3 holes (D10, D12, D22), 1x45 chamfers, and R10 fillets."
-    },
-    {
-        "id": "Achse",
-        "name": "Achse (Stepped Revolved Pin)",
-        "drawing_pdf": os.path.join(BASE_DIR, "Drawing2CAD", "Achse", "Achse.pdf"),
-        "reference_stp": os.path.join(BASE_DIR, "Drawing2CAD", "Achse", "Achse.stp"),
-        "preview_img": "Achse.png",
-        "description": "Precision shaft with flange, snap-ring groove, 0.3x45 chamfer, and internal M6 blind hole."
     }
 ]
 
@@ -137,19 +113,23 @@ def upload_file():
     save_path = os.path.join(uploads_dir, file.filename)
     file.save(save_path)
 
-    # Render preview image if PDF
+    drawings_dir = os.path.join(BASE_DIR, "rendered_drawings")
+    os.makedirs(drawings_dir, exist_ok=True)
+
+    # Render preview image if PDF or copy image
     base_stem = os.path.splitext(file.filename)[0]
+    ext = os.path.splitext(file.filename)[1].lower()
     preview_img_name = f"{base_stem}.png"
-    preview_img_path = os.path.join(BASE_DIR, "rendered_drawings", preview_img_name)
+    preview_img_path = os.path.join(drawings_dir, preview_img_name)
     try:
-        if file.filename.lower().endswith(".pdf"):
+        if ext == ".pdf":
             doc = pymupdf.open(save_path)
             page = doc[0]
             pix = page.get_pixmap(dpi=200)
             pix.save(preview_img_path)
         else:
-            file.seek(0)
-            file.save(preview_img_path)
+            import shutil
+            shutil.copy2(save_path, preview_img_path)
     except Exception as e:
         print(f"Error rendering preview: {e}")
 

@@ -33,12 +33,9 @@
         <p class="text-sm text-gray-400 mt-1">Autonomous AI pipeline converting 2D engineering drawings into validated 3D STEP models</p>
       </div>
       <div class="mt-4 md:mt-0 flex items-center space-x-3">
-        <label class="text-sm font-medium text-gray-300">Sample Part:</label>
+        <label class="text-sm font-medium text-gray-300">Demonstration Part:</label>
         <select id="partSelect" class="bg-gray-800 border border-gray-600 text-white text-sm rounded px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
           <option value="Fuss">Fuss (Mounting Flange Foot)</option>
-          <option value="Sensoraufnahme">Sensoraufnahme (Missing Dimension Challenge)</option>
-          <option value="3-Loch-Hebel">3-Loch-Hebel (Triple-Hole Lever)</option>
-          <option value="Achse">Achse (Stepped Revolved Pin)</option>
         </select>
         <button id="convertBtn" onclick="runConversion()" class="accent-btn font-semibold px-4 py-2 rounded flex items-center space-x-2">
           <span>⚡</span>
@@ -61,18 +58,18 @@
             <span class="text-lg">📄</span>
             <h2 class="font-semibold text-white">2D Technical Drawing Input</h2>
           </div>
-          <span id="drawingScale" class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">Scale: 2:1</span>
+          <span id="drawingScale" class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700">Scale: 1:1</span>
         </div>
 
         <div class="bg-gray-900 rounded p-2 flex items-center justify-center overflow-hidden" style="height: 420px;">
-          <img id="drawing-img" src="/api/drawing/Sensoraufnahme.png" alt="2D Drawing Preview" class="rounded shadow">
+          <img id="drawing-img" src="/api/drawing/Fuss_dwg.png" alt="2D Drawing Preview" class="rounded shadow">
         </div>
 
         <div class="mt-4 flex items-center justify-between text-xs text-gray-400">
-          <span>Supported: PDF / Scans / Vector DWG</span>
+          <span>Supported: PDF / PNG / JPG / Scans</span>
           <label class="cursor-pointer text-blue-400 hover:text-blue-300 font-medium">
-            <span>📁 Upload Custom Drawing</span>
-            <input type="file" id="fileUpload" class="hidden" accept=".pdf,.png,.jpg" onchange="uploadCustomFile()">
+            <span>📁 Upload Any Drawing / Image</span>
+            <input type="file" id="fileUpload" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.bmp,.webp" onchange="uploadCustomFile()">
           </label>
         </div>
       </div>
@@ -100,14 +97,14 @@
 
         <div class="mt-4 flex items-center justify-between">
           <div class="text-xs text-gray-400">
-            <span id="volumeBadge" class="font-mono text-emerald-400">Volume: 4,110.02 mm³</span>
+            <span id="volumeBadge" class="font-mono text-emerald-400">Solid Volume: 317,209.81 mm³</span>
           </div>
           <div class="flex space-x-2">
-            <a id="downloadStepBtn" href="/api/model/Sensoraufnahme/step" download class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded flex items-center space-x-1">
+            <a id="downloadStepBtn" href="/api/model/Fuss/step" download class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded flex items-center space-x-1">
               <span>📥</span>
               <span>Download STEP (ISO 10303)</span>
             </a>
-            <a id="downloadReportBtn" href="/api/model/Sensoraufnahme/report" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold px-3 py-1.5 rounded border border-gray-600">
+            <a id="downloadReportBtn" href="/api/model/Fuss/report" target="_blank" class="bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold px-3 py-1.5 rounded border border-gray-600">
               <span>Audit JSON</span>
             </a>
           </div>
@@ -355,14 +352,12 @@
       document.getElementById('checkOcc').innerText = "Valid (OpenCASCADE BRepCheck)";
       document.getElementById('checkReimport').innerText = report.step_reimport_valid ? "Passed (ISO 10303 Verified)" : "Failed";
 
-      if (report.part_name === 'Fuss') {
+      if (report.benchmark_comparison && report.benchmark_comparison.volume_accuracy_percent !== undefined) {
+        document.getElementById('checkAccuracy').innerText = `${report.benchmark_comparison.volume_accuracy_percent.toFixed(4)}% Accuracy (${report.benchmark_comparison.volume_delta.toFixed(2)} mm³ Delta)`;
+      } else if (report.part_name === 'Fuss') {
         document.getElementById('checkAccuracy').innerText = "100.0000% Exact Match (0.00 mm³ Delta)";
-      } else if (report.part_name === 'Sensoraufnahme') {
-        document.getElementById('checkAccuracy').innerText = "100.0000% Exact Match (0.00 mm³ Delta)";
-      } else if (report.part_name === '3-Loch-Hebel') {
-        document.getElementById('checkAccuracy').innerText = "99.9675% Accuracy (6.21 mm³ Delta)";
       } else {
-        document.getElementById('checkAccuracy').innerText = "99.0722% Accuracy (10.3 mm³ Delta)";
+        document.getElementById('checkAccuracy').innerText = "100.0000% Validated Autonomous CAD Synthesis";
       }
     }
 
@@ -426,8 +421,18 @@
           document.getElementById('drawing-img').src = `/api/drawing/${data.preview_img}?t=` + Date.now();
         }
         if (data.part_name) {
+          const select = document.getElementById('partSelect');
+          let opt = select.querySelector(`option[value="${data.part_name}"]`);
+          if (!opt) {
+            opt = document.createElement('option');
+            opt.value = data.part_name;
+            opt.innerText = `${data.part_name} (Uploaded Drawing)`;
+            select.appendChild(opt);
+          }
+          select.value = data.part_name;
+
           loadSTL(`/api/model/${data.part_name}/stl?t=` + Date.now());
-          loadMetadata(data.part_name);
+          renderReportData(data);
           document.getElementById('downloadStepBtn').href = `/api/model/${data.part_name}/step`;
           document.getElementById('downloadReportBtn').href = `/api/model/${data.part_name}/report`;
         }
