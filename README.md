@@ -136,16 +136,4 @@ python run_challenge.py
 
 ---
 
-## 🔒 Confidentiality & Data Privacy Notice
 
-In strict adherence to corporate data governance and intellectual property policies:
-* **All proprietary company drawing files, original PDFs, scans, and reference CAD models are excluded from this public repository.**
-* The repository contains the complete algorithmic architecture, CAD kernel integrations, sandbox security layer, MCP server tools, and web visualization platform.
-* Users can test the pipeline by placing their own technical drawings into the `uploads/` directory.
-
----
-
-## 📄 License
-
-Developed for the BCT Technology AG Drawing2CAD Hackathon Challenge.
-Distributed under the MIT License.
