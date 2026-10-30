@@ -2,7 +2,7 @@
 
 An AI-powered autonomous pipeline that converts technical 2D engineering drawings (PDFs, scans, images) into validated, closed-manifold 3D CAD models in **STEP (ISO 10303)** format.
 
-Built for the **BCT Technology AG "Drawing2CAD" Hackathon Challenge**.
+Built for the **BCT Technology AG "Drawing2CAD" Black Forest Hackathon Challenge**.
 
 ---
 
